@@ -7,6 +7,8 @@ from pathlib import Path
 try:
     from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
     from fastapi.responses import FileResponse
+    from fastapi import Response
+
 except ImportError as exc:  # pragma: no cover
     raise RuntimeError("Install total-awareness[server] to run the API") from exc
 
@@ -82,7 +84,11 @@ def create_app(db_path: Path | str = "awareness.db") -> FastAPI:
         except WebSocketDisconnect:
             return
 
-    return app
+    # bc favicon not found is annoying lol
+    @app.get("/favicon.ico", include_in_schema=False)
+    def favicon():
+        return Response(status_code=204)
 
+    return app
 
 app = create_app()
