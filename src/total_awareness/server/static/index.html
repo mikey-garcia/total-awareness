@@ -166,7 +166,7 @@
     for (const e of entities) {
       const button = document.createElement('button'); button.className='entity';
       const p = relative(e); const distance = p ? `${Math.hypot(p.x,p.y).toFixed(1)}m` : 'position unknown';
-      button.innerHTML = `<div class="entity-top"><span class="entity-name">${entityGlyph(e.kind)} · ${e.id}</span><span class="confidence">${Math.round(e.confidence*100)}%</span></div><div class="entity-meta">${e.kind} · ${distance} · evidence ${e.evidence.length}</div>`;
+      const label = e.attributes?.name || e.attributes?.manufacturer || e.kind; const sig = e.attributes?.signal_dbm != null ? ` · ${e.attributes.signal_dbm} dBm` : ''; button.innerHTML = `<div class="entity-top"><span class="entity-name">${entityGlyph(e.kind)} · ${label}</span><span class="confidence">${Math.round(e.confidence*100)}%</span></div><div class="entity-meta">${e.id} · ${distance}${sig} · evidence ${e.evidence.length}</div>`;
       button.onclick = () => openEntity(e.id); list.appendChild(button);
     }
   }

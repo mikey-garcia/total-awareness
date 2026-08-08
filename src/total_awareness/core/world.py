@@ -52,6 +52,12 @@ class WorldModel:
             elif inferred_position is not None:
                 entity.position = inferred_position
 
+        # Collector payload is descriptive evidence metadata, not identity truth.
+        # Keep the most recent non-null values on the entity for HUD/debug views.
+        for key, value in obs.payload.items():
+            if value is not None:
+                entity.attributes[key] = value
+
         entity.evidence.append(
             Evidence(observation_id=obs.id, weight=obs.confidence, reason=obs.type.value)
         )

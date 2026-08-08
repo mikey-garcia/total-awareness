@@ -1,0 +1,17 @@
+{
+  "snapshots": [
+    {"delay_s": 1.0, "devices": [
+      {"mac": "02:11:22:33:44:55", "type": "AP", "ssid": "DEFCON-LAB", "vendor": "Demo Networks", "channel": "6", "signal_dbm": -67},
+      {"mac": "02:aa:bb:cc:dd:01", "type": "Wi-Fi Client", "vendor": "Unknown", "channel": "6", "signal_dbm": -79}
+    ]},
+    {"delay_s": 1.0, "devices": [
+      {"mac": "02:11:22:33:44:55", "type": "AP", "ssid": "DEFCON-LAB", "vendor": "Demo Networks", "channel": "6", "signal_dbm": -54},
+      {"mac": "02:aa:bb:cc:dd:01", "type": "Wi-Fi Client", "vendor": "Unknown", "channel": "6", "signal_dbm": -68},
+      {"mac": "02:aa:bb:cc:dd:02", "type": "Wi-Fi Client", "vendor": "Demo Wearables", "channel": "11", "signal_dbm": -71}
+    ]},
+    {"delay_s": 1.0, "devices": [
+      {"mac": "02:11:22:33:44:55", "type": "AP", "ssid": "DEFCON-LAB", "vendor": "Demo Networks", "channel": "6", "signal_dbm": -49},
+      {"mac": "02:aa:bb:cc:dd:02", "type": "Wi-Fi Client", "vendor": "Demo Wearables", "channel": "11", "signal_dbm": -58}
+    ]}
+  ]
+}

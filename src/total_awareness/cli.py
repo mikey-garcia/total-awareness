@@ -7,6 +7,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from total_awareness.collectors.kismet import KismetCollector, KismetDemoCollector
 from total_awareness.collectors.simulated import SimulatedCollector
 from total_awareness.runner import run_collector
 from total_awareness.storage.replay import replay_database
@@ -37,6 +38,40 @@ def simulate(
     finally:
         store.close()
     console.print(_entity_table(engine.world.entities.values()))
+
+
+@app.command("demo-kismet")
+def demo_kismet(
+    fixture: Path = typer.Argument(Path("demos/kismet_devices.json")),
+    db: Path = typer.Option(Path("awareness.db"), help="SQLite event log"),
+    realtime: bool = typer.Option(True, help="Pause between demo snapshots"),
+) -> None:
+    """Replay representative Kismet device snapshots through the real fusion/HUD path."""
+    store = SQLiteStore(db)
+    try:
+        engine = asyncio.run(run_collector(KismetDemoCollector(fixture, realtime=realtime), store))
+    finally:
+        store.close()
+    console.print(_entity_table(engine.world.entities.values()))
+
+
+@app.command()
+def kismet(
+    url: str = typer.Option("http://127.0.0.1:2501", help="Kismet server base URL"),
+    db: Path = typer.Option(Path("awareness.db"), help="SQLite event log"),
+    poll: float = typer.Option(2.0, help="Poll interval in seconds"),
+    username: str | None = typer.Option(None, help="Kismet username, if required"),
+    password: str | None = typer.Option(None, help="Kismet password, if required", hide_input=True),
+) -> None:
+    """Continuously ingest nearby Wi-Fi devices from a Kismet server."""
+    store = SQLiteStore(db)
+    console.print(f"[bold green]Kismet[/bold green] {url} -> {db} (Ctrl+C to stop)")
+    try:
+        asyncio.run(run_collector(KismetCollector(url, poll_interval=poll, username=username, password=password), store))
+    except KeyboardInterrupt:
+        console.print("Stopped Kismet ingestion")
+    finally:
+        store.close()
 
 
 @app.command()
