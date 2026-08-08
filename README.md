@@ -45,3 +45,23 @@ Collectors are adapters. Kismet, BlueZ, Nexmon CSI, phone telemetry, SDRs, camer
 ## Safety / scope
 
 The platform is designed for passive situational awareness, controlled experiments, and authorized security research. Internet-facing enrichment should only be used on infrastructure you own or are authorized to assess.
+
+
+## Mobile HUD
+
+Install the server extra and start the HUD:
+
+```powershell
+pip install -e ".[server,dev]"
+ta serve --db awareness.db
+```
+
+On the same Windows machine, open `http://127.0.0.1:8000`. To use your phone, keep it on the same LAN and open `http://<YOUR-PC-LAN-IP>:8000`. Windows Firewall may ask you to allow Python on private networks.
+
+For a live synthetic demo, leave `ta serve` running and start the simulator in a second PowerShell window:
+
+```powershell
+ta simulate scenarios/hallway.yaml --db awareness.db --realtime
+```
+
+The HUD reads the same persisted observation stream as the CLI. It receives world-model snapshots over `/ws`, shows entities relative to the observer, and lets you inspect each entity's underlying evidence. No frontend build toolchain is required.

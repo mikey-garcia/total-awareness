@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .models import Entity, Evidence, Observation
+from .models import Entity, Evidence, Observation, Vec3
 
 
 class WorldModel:
@@ -18,7 +18,14 @@ class WorldModel:
         self._next_id += 1
         return entity_id
 
-    def upsert_from_observation(self, obs: Observation, *, kind: str, confidence: float) -> Entity:
+    def upsert_from_observation(
+        self,
+        obs: Observation,
+        *,
+        kind: str,
+        confidence: float,
+        inferred_position: Vec3 | None = None,
+    ) -> Entity:
         self.remember(obs)
         entity_id = self.subject_index.get(obs.subject_key or "")
         if entity_id is None:
@@ -27,7 +34,7 @@ class WorldModel:
                 id=entity_id,
                 kind=kind,
                 confidence=confidence,
-                position=obs.position,
+                position=obs.position or inferred_position,
                 aliases={obs.subject_key} if obs.subject_key else set(),
                 evidence=[],
                 first_seen=obs.timestamp,
@@ -42,6 +49,8 @@ class WorldModel:
             entity.confidence = 1.0 - ((1.0 - entity.confidence) * (1.0 - confidence))
             if obs.position is not None:
                 entity.position = obs.position
+            elif inferred_position is not None:
+                entity.position = inferred_position
 
         entity.evidence.append(
             Evidence(observation_id=obs.id, weight=obs.confidence, reason=obs.type.value)

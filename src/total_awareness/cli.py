@@ -66,5 +66,26 @@ def explain(entity_id: str, db: Path = typer.Option(Path("awareness.db"))) -> No
             f"sensor={obs.sensor_id} confidence={obs.confidence:.2f} id={obs.id}"
         )
 
+
+@app.command()
+def serve(
+    db: Path = typer.Option(Path("awareness.db"), help="SQLite event log"),
+    host: str = typer.Option("0.0.0.0", help="Listen address"),
+    port: int = typer.Option(8000, help="HTTP port"),
+) -> None:
+    """Serve the mobile-first Total Awareness HUD and API."""
+    try:
+        import uvicorn
+    except ImportError as exc:
+        raise typer.BadParameter('Install server dependencies: pip install -e ".[server]"') from exc
+
+    from total_awareness.server.app import create_app
+
+    console.print(f"[bold green]HUD[/bold green] http://127.0.0.1:{port}")
+    if host == "0.0.0.0":
+        console.print("Open the same port using this PC's LAN IP from your phone.")
+    uvicorn.run(create_app(db), host=host, port=port)
+
+
 if __name__ == "__main__":
     app()
