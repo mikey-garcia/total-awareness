@@ -1,0 +1,15 @@
+seed: 1337
+steps: 20
+dt_s: 0.25
+observer:
+  start: [0.0, 0.0, 1.6]
+  velocity: [0.8, 0.0, 0.0]
+entities:
+  - id: cam-lobby
+    kind: camera
+    position: [8.0, 3.0, 2.5]
+    rf_id: wifi:aa:bb:cc:00:00:01
+  - id: ap-hall
+    kind: access_point
+    position: [14.0, -2.0, 2.2]
+    rf_id: wifi:aa:bb:cc:00:00:02
