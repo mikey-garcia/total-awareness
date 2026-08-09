@@ -1,12 +1,13 @@
+from adapters.kismet import KismetAdapter
 from core import World
 from db import connect, load, save
-from hardware.kismet import normalize
 
 
 def _wifi(rssi: int):
-    value = normalize({"mac": "AA:BB:CC:DD:EE:FF", "type": "AP", "ssid": "lab", "vendor": "Example", "channel": 6, "signal_dbm": rssi})
-    assert value is not None
-    return value
+    adapter = KismetAdapter([
+        {"mac": "AA:BB:CC:DD:EE:FF", "type": "AP", "ssid": "lab", "vendor": "Example", "channel": 6, "signal_dbm": rssi}
+    ])
+    return next(iter(adapter.observations()))
 
 
 def test_kismet_updates_one_stable_entity():

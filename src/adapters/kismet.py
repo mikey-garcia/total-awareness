@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any
 
 from protocol import observation
@@ -18,7 +19,7 @@ def _get(device: dict[str, Any], *names: str):
     return None
 
 
-def normalize(device: dict[str, Any], sensor: str = "pi1.wifi") -> dict[str, Any] | None:
+def _normalize(device: dict[str, Any], sensor: str) -> dict[str, Any] | None:
     mac = _get(device, "kismet.device.base.macaddr", "macaddr", "mac")
     if not mac:
         return None
@@ -38,3 +39,15 @@ def normalize(device: dict[str, Any], sensor: str = "pi1.wifi") -> dict[str, Any
         id=f"wifi:{str(mac).lower()}",
         data={key: value for key, value in data.items() if value not in (None, "")},
     )
+
+
+class KismetAdapter:
+    def __init__(self, devices: Iterable[dict[str, Any]], sensor: str = "pi1.wifi"):
+        self.devices = devices
+        self.sensor = sensor
+
+    def observations(self):
+        for device in self.devices:
+            obs = _normalize(device, self.sensor)
+            if obs is not None:
+                yield obs
