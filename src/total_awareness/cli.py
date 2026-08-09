@@ -1,124 +1,71 @@
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
 
 import typer
 from rich.console import Console
-from rich.table import Table
 
-from total_awareness.collectors.kismet import KismetCollector, KismetDemoCollector
-from total_awareness.collectors.simulated import SimulatedCollector
-from total_awareness.runner import run_collector
-from total_awareness.storage.replay import replay_database
-from total_awareness.storage.sqlite import SQLiteStore
+from total_awareness.app import create_app
+from total_awareness.core import World, ingest, replay as replay_world
+from total_awareness.db import connect, load, save
+from total_awareness.hardware.kismet import normalize
 
 app = typer.Typer(help="Total Awareness research CLI")
 console = Console()
 
 
-def _entity_table(entities):
-    table = Table("Entity", "Kind", "Confidence", "Position", "Evidence")
-    for entity in sorted(entities, key=lambda e: e.id):
-        pos = "-" if entity.position is None else f"({entity.position.x:.1f}, {entity.position.y:.1f}, {entity.position.z:.1f})"
-        table.add_row(entity.id, entity.kind, f"{entity.confidence:.1%}", pos, str(len(entity.evidence)))
-    return table
-
-
-@app.command()
-def simulate(
-    scenario: Path,
-    db: Path = typer.Option(Path("awareness.db"), help="SQLite event log"),
-    realtime: bool = typer.Option(False, help="Sleep between simulated timesteps"),
-) -> None:
-    """Run a deterministic synthetic scenario through the real ingestion/fusion path."""
-    store = SQLiteStore(db)
-    try:
-        engine = asyncio.run(run_collector(SimulatedCollector(scenario, realtime=realtime), store))
-    finally:
-        store.close()
-    console.print(_entity_table(engine.world.entities.values()))
-
-
 @app.command("demo-kismet")
 def demo_kismet(
     fixture: Path = typer.Argument(Path("demos/kismet_devices.json")),
-    db: Path = typer.Option(Path("awareness.db"), help="SQLite event log"),
-    realtime: bool = typer.Option(True, help="Pause between demo snapshots"),
+    db: Path = typer.Option(Path("awareness.db")),
+    record: bool = typer.Option(False, "--record", help="Persist observations to SQLite"),
 ) -> None:
-    """Replay representative Kismet device snapshots through the real fusion/HUD path."""
-    store = SQLiteStore(db)
-    try:
-        engine = asyncio.run(run_collector(KismetDemoCollector(fixture, realtime=realtime), store))
-    finally:
-        store.close()
-    console.print(_entity_table(engine.world.entities.values()))
+    import json
 
-
-@app.command()
-def kismet(
-    url: str = typer.Option("http://127.0.0.1:2501", help="Kismet server base URL"),
-    db: Path = typer.Option(Path("awareness.db"), help="SQLite event log"),
-    poll: float = typer.Option(2.0, help="Poll interval in seconds"),
-    username: str | None = typer.Option(None, help="Kismet username, if required"),
-    password: str | None = typer.Option(None, help="Kismet password, if required", hide_input=True),
-) -> None:
-    """Continuously ingest nearby Wi-Fi devices from a Kismet server."""
-    store = SQLiteStore(db)
-    console.print(f"[bold green]Kismet[/bold green] {url} -> {db} (Ctrl+C to stop)")
+    data = json.loads(fixture.read_text(encoding="utf-8"))
+    snapshots = data.get("snapshots", data) if isinstance(data, dict) else data
+    world = World()
+    conn = connect(db) if record else None
     try:
-        asyncio.run(run_collector(KismetCollector(url, poll_interval=poll, username=username, password=password), store))
-    except KeyboardInterrupt:
-        console.print("Stopped Kismet ingestion")
+        for snapshot in snapshots:
+            devices = snapshot.get("devices", snapshot) if isinstance(snapshot, dict) else snapshot
+            if not isinstance(devices, list):
+                continue
+            for device in devices:
+                if not isinstance(device, dict):
+                    continue
+                observation = normalize(device, sensor="kismet:demo")
+                if observation is None:
+                    continue
+                if conn is not None:
+                    save(conn, observation)
+                ingest(world, observation)
     finally:
-        store.close()
+        if conn is not None:
+            conn.close()
+    console.print_json(data=list(world.entities.values()))
 
 
 @app.command()
 def replay(db: Path = typer.Option(Path("awareness.db"))) -> None:
-    """Recompute world state only from immutable stored observations."""
-    engine = replay_database(db)
-    console.print(_entity_table(engine.world.entities.values()))
-
-
-@app.command()
-def entities(db: Path = typer.Option(Path("awareness.db"))) -> None:
-    store = SQLiteStore(db)
+    conn = connect(db)
     try:
-        console.print(_entity_table(store.load_entities()))
+        world = replay_world(load(conn))
     finally:
-        store.close()
-
-
-@app.command()
-def explain(entity_id: str, db: Path = typer.Option(Path("awareness.db"))) -> None:
-    engine = replay_database(db)
-    entity, observations = engine.world.explain(entity_id)
-    console.print(f"[bold]{entity.id}[/bold] {entity.kind} confidence={entity.confidence:.1%}")
-    for obs in observations:
-        console.print(
-            f"- {obs.timestamp.isoformat()} {obs.modality.value}/{obs.type.value} "
-            f"sensor={obs.sensor_id} confidence={obs.confidence:.2f} id={obs.id}"
-        )
+        conn.close()
+    console.print_json(data=list(world.entities.values()))
 
 
 @app.command()
 def serve(
-    db: Path = typer.Option(Path("awareness.db"), help="SQLite event log"),
-    host: str = typer.Option("0.0.0.0", help="Listen address"),
-    port: int = typer.Option(8000, help="HTTP port"),
+    db: Path = typer.Option(Path("awareness.db")),
+    host: str = typer.Option("0.0.0.0"),
+    port: int = typer.Option(8000),
 ) -> None:
-    """Serve the mobile-first Total Awareness HUD and API."""
     try:
         import uvicorn
     except ImportError as exc:
         raise typer.BadParameter('Install server dependencies: pip install -e ".[server]"') from exc
-
-    from total_awareness.server.app import create_app
-
-    console.print(f"[bold green]HUD[/bold green] http://127.0.0.1:{port}")
-    if host == "0.0.0.0":
-        console.print("Open the same port using this PC's LAN IP from your phone.")
     uvicorn.run(create_app(db), host=host, port=port)
 
 
