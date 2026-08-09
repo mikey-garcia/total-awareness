@@ -6,10 +6,10 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
+from adapters.kismet import KismetAdapter
 from app import create_app
-from core import World
-from db import connect, load, save
-from hardware.kismet import normalize
+from core import World, run_adapter
+from db import connect, load
 
 app = typer.Typer(help="Total Awareness")
 console = Console()
@@ -28,17 +28,8 @@ def demo_kismet(
     try:
         for snapshot in snapshots:
             devices = snapshot.get("devices", snapshot) if isinstance(snapshot, dict) else snapshot
-            if not isinstance(devices, list):
-                continue
-            for device in devices:
-                if not isinstance(device, dict):
-                    continue
-                obs = normalize(device, sensor="kismet:demo")
-                if obs is None:
-                    continue
-                world.observe(obs)
-                if conn is not None:
-                    save(conn, obs)
+            if isinstance(devices, list):
+                run_adapter(KismetAdapter(devices, sensor="kismet:demo"), world, conn)
     finally:
         if conn is not None:
             conn.close()
