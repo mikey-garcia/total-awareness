@@ -1,6 +1,6 @@
 import pytest
 
-from total_awareness.wire import HEADER, MAGIC, VERSION, pack, unpack
+from wire import HEADER, MAGIC, VERSION, pack, unpack
 
 
 def test_wire_round_trip():

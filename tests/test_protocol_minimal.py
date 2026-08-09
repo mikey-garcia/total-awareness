@@ -1,4 +1,4 @@
-from total_awareness.protocol import REQUIRED
+from protocol import REQUIRED
 
 
 def test_protocol_has_only_five_top_level_fields():

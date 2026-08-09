@@ -10,8 +10,8 @@ try:
 except ImportError as exc:  # pragma: no cover
     raise RuntimeError("Install total-awareness[server] to run the API") from exc
 
-from total_awareness.core import World
-from total_awareness.db import connect, load
+from core import World
+from db import connect, load
 
 STATIC_DIR = Path(__file__).with_name("static")
 

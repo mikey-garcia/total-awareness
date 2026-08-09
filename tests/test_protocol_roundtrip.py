@@ -1,6 +1,6 @@
 import json
 
-from total_awareness.protocol import message, validate
+from protocol import message, validate
 
 
 def test_protocol_round_trips_as_json():
