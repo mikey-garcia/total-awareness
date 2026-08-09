@@ -1,4 +1,4 @@
-from total_awareness.core import World, ingest, replay
+from total_awareness.core import World
 from total_awareness.db import connect, load, save
 from total_awareness.hardware.kismet import normalize
 
@@ -20,8 +20,8 @@ def _wifi(rssi: int):
 
 def test_kismet_updates_one_stable_entity():
     world = World()
-    first = ingest(world, _wifi(-70))
-    second = ingest(world, _wifi(-51))
+    first = world.observe(_wifi(-70))
+    second = world.observe(_wifi(-51))
 
     assert first["id"] == second["id"] == "wifi:aa:bb:cc:dd:ee:ff"
     assert len(world.entities) == 1
@@ -43,12 +43,12 @@ def test_database_preserves_observation_order(tmp_path):
 
 def test_recording_and_replay_do_not_change_world_state(tmp_path):
     observations = [_wifi(-70), _wifi(-51)]
-    direct = replay(observations)
+    direct = World.replay(observations)
 
     conn = connect(tmp_path / "events.db")
     for observation in observations:
         save(conn, observation)
-    recorded = replay(load(conn))
+    recorded = World.replay(load(conn))
     conn.close()
 
     assert recorded.entities == direct.entities
