@@ -10,7 +10,7 @@ try:
 except ImportError as exc:  # pragma: no cover
     raise RuntimeError("Install total-awareness[server] to run the API") from exc
 
-from total_awareness.core import replay
+from total_awareness.core import World
 from total_awareness.db import connect, load
 
 STATIC_DIR = Path(__file__).with_name("static")
@@ -19,10 +19,9 @@ STATIC_DIR = Path(__file__).with_name("static")
 def _snapshot(db_path: Path | str) -> dict:
     conn = connect(db_path)
     try:
-        world = replay(load(conn))
+        entities = World.replay(load(conn)).snapshot()
     finally:
         conn.close()
-    entities = sorted(world.entities.values(), key=lambda entity: entity["id"])
     return {
         "entities": entities,
         "counts": {
@@ -34,7 +33,7 @@ def _snapshot(db_path: Path | str) -> dict:
 
 def create_app(db_path: Path | str = "awareness.db") -> FastAPI:
     db_path = Path(db_path)
-    app = FastAPI(title="Total Awareness", version="0.3.0")
+    app = FastAPI(title="Total Awareness", version="0.4.0")
 
     @app.get("/", include_in_schema=False)
     def hud():
