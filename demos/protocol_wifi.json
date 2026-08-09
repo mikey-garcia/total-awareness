@@ -1,0 +1,12 @@
+{
+  "time": "2026-08-09T14:00:00Z",
+  "sensor": "pi1.wifi",
+  "type": "wifi_device",
+  "id": "wifi:aa:bb:cc:dd:ee:ff",
+  "data": {
+    "kind": "access_point",
+    "name": "demo-ap",
+    "rssi": -57,
+    "channel": 6
+  }
+}
