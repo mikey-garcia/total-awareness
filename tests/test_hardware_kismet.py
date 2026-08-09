@@ -1,5 +1,5 @@
-from total_awareness.hardware.kismet import normalize
-from total_awareness.protocol import validate
+from hardware.kismet import normalize
+from protocol import validate
 
 
 def test_kismet_normalizes_to_protocol():

@@ -1,4 +1,4 @@
-from total_awareness.protocol import message, validate
+from protocol import message, validate
 
 
 def test_message_is_plain_json_shape():

@@ -6,10 +6,10 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from total_awareness.app import create_app
-from total_awareness.core import World
-from total_awareness.db import connect, load, save
-from total_awareness.hardware.kismet import normalize
+from app import create_app
+from core import World
+from db import connect, load, save
+from hardware.kismet import normalize
 
 app = typer.Typer(help="Total Awareness")
 console = Console()

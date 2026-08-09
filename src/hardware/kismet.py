@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from total_awareness.protocol import observation
+from protocol import observation
 
 
 def _get(device: dict[str, Any], *names: str):

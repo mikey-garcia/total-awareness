@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Iterable
 
-from total_awareness.protocol import validate
+from protocol import validate
 
 
 @dataclass
