@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Iterable
 
+from adapters.base import Adapter
 from protocol import validate
 
 
@@ -32,3 +33,12 @@ class World:
         for observation in observations:
             world.observe(observation)
         return world
+
+
+def run_adapter(adapter: Adapter, world: World, conn=None) -> None:
+    from db import save
+
+    for observation in adapter.observations():
+        world.observe(observation)
+        if conn is not None:
+            save(conn, observation)
