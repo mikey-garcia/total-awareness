@@ -1,10 +1,8 @@
-"""Kismet -> Total Awareness protocol. No core/storage knowledge belongs here."""
-
 from __future__ import annotations
 
 from typing import Any
 
-from total_awareness.protocol import message
+from total_awareness.protocol import observation
 
 
 def _get(device: dict[str, Any], *names: str):
@@ -21,7 +19,6 @@ def _get(device: dict[str, Any], *names: str):
 
 
 def normalize(device: dict[str, Any], sensor: str = "pi1.wifi") -> dict[str, Any] | None:
-    """Turn one Kismet device dictionary into our five-key protocol."""
     mac = _get(device, "kismet.device.base.macaddr", "macaddr", "mac")
     if not mac:
         return None
@@ -35,7 +32,7 @@ def normalize(device: dict[str, Any], sensor: str = "pi1.wifi") -> dict[str, Any
         "frequency_khz": _get(device, "kismet.device.base.frequency", "frequency_khz", "frequency"),
         "rssi": _get(device, "kismet.device.base.signal/kismet.common.signal.last_signal", "signal/kismet.common.signal.last_signal", "last_signal", "signal_dbm"),
     }
-    return message(
+    return observation(
         sensor=sensor,
         type="wifi_device",
         id=f"wifi:{str(mac).lower()}",
