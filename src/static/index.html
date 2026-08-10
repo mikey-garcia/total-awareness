@@ -1,1 +1,40 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Total Awareness</title><style>body{font-family:ui-monospace,monospace;background:#07110d;color:#e8fff2;margin:0;padding:24px}pre{white-space:pre-wrap;background:#0b1b14;padding:16px;border-radius:12px}</style></head><body><h1>Total Awareness</h1><pre id="world">loading…</pre><script>async function refresh(){const r=await fetch('/api/snapshot');world.textContent=JSON.stringify(await r.json(),null,2)}refresh();const p=location.protocol==='https:'?'wss':'ws';const w=new WebSocket(`${p}://${location.host}/ws`);w.onmessage=e=>world.textContent=JSON.stringify(JSON.parse(e.data),null,2)</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07110d">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/style.css">
+  <title>Total Awareness</title>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div><span class="eyebrow">TOTAL</span><h1>AWARENESS</h1></div>
+      <span id="live" class="status">CONNECTING</span>
+    </header>
+
+    <section class="overview panel">
+      <div><strong id="total">—</strong><span>ENTITIES</span></div>
+      <div><strong id="rf">—</strong><span>WI-FI</span></div>
+      <div><strong id="sources">—</strong><span>SOURCES</span></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head"><h2>NOTIFICATIONS</h2><span id="push-status">OFF</span></div>
+      <div class="actions">
+        <button id="enable-push">ENABLE</button>
+        <button id="test-push" class="secondary" disabled>TEST PUSH</button>
+      </div>
+      <p class="hint">On iPhone, install this page to the Home Screen before enabling push.</p>
+    </section>
+
+    <section class="panel entities-panel">
+      <div class="section-head"><h2>ENTITIES</h2><span id="updated">—</span></div>
+      <div id="entities" class="entities"><p class="muted">Loading…</p></div>
+    </section>
+  </main>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
