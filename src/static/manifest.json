@@ -1,0 +1,8 @@
+{
+  "name": "Total Awareness",
+  "short_name": "Awareness",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07110d",
+  "theme_color": "#07110d"
+}
