@@ -40,13 +40,6 @@ def create_app(db_path: Path | str = "awareness.db") -> FastAPI:
     def hud():
         return FileResponse(STATIC_DIR / "index.html")
 
-    @app.get("/{asset:path}", include_in_schema=False)
-    def static_asset(asset: str):
-        path = (STATIC_DIR / asset).resolve()
-        if STATIC_DIR.resolve() not in path.parents or not path.is_file():
-            raise HTTPException(status_code=404)
-        return FileResponse(path)
-
     @app.get("/health")
     def health():
         return {"status": "ok", "db": str(db_path)}
@@ -103,6 +96,13 @@ def create_app(db_path: Path | str = "awareness.db") -> FastAPI:
     @app.get("/favicon.ico", include_in_schema=False)
     def favicon():
         return Response(status_code=204)
+
+    @app.get("/{asset:path}", include_in_schema=False)
+    def static_asset(asset: str):
+        path = (STATIC_DIR / asset).resolve()
+        if STATIC_DIR.resolve() not in path.parents or not path.is_file():
+            raise HTTPException(status_code=404)
+        return FileResponse(path)
 
     return app
 
