@@ -22,7 +22,7 @@ py-modules = ["app", "cli", "core", "db", "protocol", "wire", "push"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["hardware*", "adapters*"]
+include = ["adapters*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
