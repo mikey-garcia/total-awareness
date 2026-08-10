@@ -12,6 +12,7 @@ except ImportError as exc:  # pragma: no cover
 
 from core import World
 from db import connect, load
+from push import public_key, send_all, subscribe
 
 STATIC_DIR = Path(__file__).with_name("static")
 
@@ -33,11 +34,18 @@ def _snapshot(db_path: Path | str) -> dict:
 
 def create_app(db_path: Path | str = "awareness.db") -> FastAPI:
     db_path = Path(db_path)
-    app = FastAPI(title="Total Awareness", version="0.4.0")
+    app = FastAPI(title="Total Awareness", version="0.5.0")
 
     @app.get("/", include_in_schema=False)
     def hud():
         return FileResponse(STATIC_DIR / "index.html")
+
+    @app.get("/{asset:path}", include_in_schema=False)
+    def static_asset(asset: str):
+        path = (STATIC_DIR / asset).resolve()
+        if STATIC_DIR.resolve() not in path.parents or not path.is_file():
+            raise HTTPException(status_code=404)
+        return FileResponse(path)
 
     @app.get("/health")
     def health():
@@ -46,6 +54,22 @@ def create_app(db_path: Path | str = "awareness.db") -> FastAPI:
     @app.get("/api/snapshot")
     def snapshot():
         return _snapshot(db_path)
+
+    @app.get("/api/push/key")
+    def push_key():
+        return {"public_key": public_key()}
+
+    @app.post("/api/push/subscribe", status_code=204)
+    def push_subscribe(value: dict):
+        try:
+            subscribe(value)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return Response(status_code=204)
+
+    @app.post("/api/push/test")
+    def push_test():
+        return {"sent": send_all({"title": "Total Awareness", "body": "Push is online.", "url": "/"})}
 
     @app.get("/entities")
     def entities():
