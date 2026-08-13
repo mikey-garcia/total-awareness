@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS observations (
     seq INTEGER PRIMARY KEY AUTOINCREMENT,
     time TEXT NOT NULL,
     sensor TEXT NOT NULL,
-    type TEXT NOT NULL,
     id TEXT,
     data TEXT NOT NULL
 );
@@ -27,16 +26,24 @@ def connect(path: str | Path) -> sqlite3.Connection:
 
 def save(conn: sqlite3.Connection, obs: dict[str, Any]) -> None:
     obs = validate(obs)
-    conn.execute(
-        "INSERT INTO observations(time, sensor, type, id, data) VALUES (?, ?, ?, ?, ?)",
-        (obs["time"], obs["sensor"], obs["type"], obs["id"], json.dumps(obs["data"])),
-    )
+    encoded = json.dumps(obs["data"])
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(observations)")}
+    if "type" in columns:
+        conn.execute(
+            "INSERT INTO observations(time, sensor, type, id, data) VALUES (?, ?, ?, ?, ?)",
+            (obs["time"], obs["sensor"], "", obs["id"], encoded),
+        )
+    else:
+        conn.execute(
+            "INSERT INTO observations(time, sensor, id, data) VALUES (?, ?, ?, ?)",
+            (obs["time"], obs["sensor"], obs["id"], encoded),
+        )
     conn.commit()
 
 
 def load(conn: sqlite3.Connection) -> list[dict[str, Any]]:
-    rows = conn.execute("SELECT time, sensor, type, id, data FROM observations ORDER BY seq").fetchall()
+    rows = conn.execute("SELECT time, sensor, id, data FROM observations ORDER BY seq").fetchall()
     return [
-        {"time": row[0], "sensor": row[1], "type": row[2], "id": row[3], "data": json.loads(row[4])}
+        {"time": row[0], "sensor": row[1], "id": row[2], "data": json.loads(row[3])}
         for row in rows
     ]
