@@ -26,18 +26,10 @@ def connect(path: str | Path) -> sqlite3.Connection:
 
 def save(conn: sqlite3.Connection, obs: dict[str, Any]) -> None:
     obs = validate(obs)
-    encoded = json.dumps(obs["data"])
-    columns = {row[1] for row in conn.execute("PRAGMA table_info(observations)")}
-    if "type" in columns:
-        conn.execute(
-            "INSERT INTO observations(time, sensor, type, id, data) VALUES (?, ?, ?, ?, ?)",
-            (obs["time"], obs["sensor"], "", obs["id"], encoded),
-        )
-    else:
-        conn.execute(
-            "INSERT INTO observations(time, sensor, id, data) VALUES (?, ?, ?, ?)",
-            (obs["time"], obs["sensor"], obs["id"], encoded),
-        )
+    conn.execute(
+        "INSERT INTO observations(time, sensor, id, data) VALUES (?, ?, ?, ?)",
+        (obs["time"], obs["sensor"], obs["id"], json.dumps(obs["data"])),
+    )
     conn.commit()
 
 
