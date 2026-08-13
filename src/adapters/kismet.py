@@ -23,7 +23,6 @@ def _normalize(device: dict[str, Any], sensor: str) -> dict[str, Any] | None:
     mac = _get(device, "kismet.device.base.macaddr", "macaddr", "mac")
     if not mac:
         return None
-
     kind = str(_get(device, "kismet.device.base.type", "type") or "").lower()
     data = {
         "kind": "access_point" if kind in {"wifi ap", "ap", "access_point"} else "rf_device",
@@ -33,12 +32,7 @@ def _normalize(device: dict[str, Any], sensor: str) -> dict[str, Any] | None:
         "frequency_khz": _get(device, "kismet.device.base.frequency", "frequency_khz", "frequency"),
         "rssi": _get(device, "kismet.device.base.signal/kismet.common.signal.last_signal", "signal/kismet.common.signal.last_signal", "last_signal", "signal_dbm"),
     }
-    return observation(
-        sensor=sensor,
-        type="wifi_device",
-        id=f"wifi:{str(mac).lower()}",
-        data={key: value for key, value in data.items() if value not in (None, "")},
-    )
+    return observation(sensor=sensor, id=f"wifi:{str(mac).lower()}", data={key: value for key, value in data.items() if value not in (None, "")})
 
 
 class KismetAdapter:
