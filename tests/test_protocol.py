@@ -2,13 +2,13 @@ from protocol import message, validate
 
 
 def test_message_is_plain_json_shape():
-    value = message(sensor="pi1.wifi", type="wifi_device", id="wifi:aa", data={"rssi": -57})
-    assert set(value) == {"time", "sensor", "type", "id", "data"}
+    value = message(sensor="pi1.wifi", id="wifi:aa", data={"rssi": -57})
+    assert set(value) == {"time", "sensor", "id", "data"}
     assert validate(value) is value
 
 
 def test_protocol_rejects_surprise_top_level_fields():
-    value = message(sensor="pi1.wifi", type="wifi_device")
+    value = message(sensor="pi1.wifi", id="wifi:aa")
     value["mystery"] = True
     try:
         validate(value)

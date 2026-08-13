@@ -27,14 +27,14 @@ def _snapshot(db_path: Path | str) -> dict:
         "entities": entities,
         "counts": {
             "total": len(entities),
-            "rf": sum(entity["type"] == "wifi_device" for entity in entities),
+            "rf": sum("rssi" in entity.get("data", {}) or "frequency_khz" in entity.get("data", {}) for entity in entities),
         },
     }
 
 
 def create_app(db_path: Path | str = "awareness.db") -> FastAPI:
     db_path = Path(db_path)
-    app = FastAPI(title="Total Awareness", version="0.5.0")
+    app = FastAPI(title="Total Awareness", version="0.6.0")
 
     @app.get("/", include_in_schema=False)
     def hud():
